@@ -1,12 +1,23 @@
-# React + Vite
+⚡ Trello Clone – A drag-and-drop task management web app inspired by Trello. Built using React, react-beautiful-dnd, styled-components, and Ant Design.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+✅ Features:
 
-Currently, two official plugins are available:
+1. Kanban board with draggable tasks
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+2. Custom card design with SVG avatars
 
-## Expanding the ESLint configuration
+3. Dynamic background colors for status (backlog, in-progress, done)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+4. Responsive layout and minimal UI
+
+🚀 Deployed on [Vercel/Netlify/Render] — try it live here: [Your Live Link]
+
+💻 Tech Stack:
+
+1. React / Vite
+
+2. styled-components
+
+3. react-beautiful-dnd
+
+4. Ant Design (for UI elements)
