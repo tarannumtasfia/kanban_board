@@ -37,5 +37,10 @@
   },
   "engines": {
     "node": "20.x"
+  },
+  "pnpm": {
+    "overrides": {
+      "esbuild": "0.25.5"
+    }
   }
 }
