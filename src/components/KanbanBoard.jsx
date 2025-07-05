@@ -12,7 +12,7 @@ export default function Board() {
   const [newTaskText, setNewTaskText] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:4000/tasks")
+    fetch("http://localhost:4000")
       .then((res) => res.json())
       .then((tasks) => {
         setCompleted(tasks.filter((t) => t.status === "done"));
