@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { DragDropContext } from "react-beautiful-dnd";
-import Column from "./column";
+import Column from "./Column";
 
 export default function Board() {
     const [completed, setCompleted] = useState([]);
