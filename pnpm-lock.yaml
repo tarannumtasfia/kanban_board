@@ -33,6 +33,9 @@ importers:
         specifier: ^6.1.19
         version: 6.1.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
     devDependencies:
+      '@esbuild/linux-x64':
+        specifier: ^0.25.5
+        version: 0.25.5
       '@eslint/js':
         specifier: ^9.29.0
         version: 9.30.1
@@ -330,6 +333,12 @@ packages:
   '@esbuild/linux-x64@0.18.20':
     resolution: {integrity: sha512-UYqiqemphJcNsFEskc73jQ7B9jgwjWrSayxawS6UVFZGWrAAtkzjxSqnoclCXxWtfwLdzU+vTpcNYhpn43uP1w==}
     engines: {node: '>=12'}
+    cpu: [x64]
+    os: [linux]
+
+  '@esbuild/linux-x64@0.25.5':
+    resolution: {integrity: sha512-uhj8N2obKTE6pSZ+aMUbqq+1nXxNjZIIjCjGLfsWvVpy7gKCOL6rsY1MhRh9zLtUtAI7vpgLMK6DxjO8Qm9lJw==}
+    engines: {node: '>=18'}
     cpu: [x64]
     os: [linux]
 
@@ -1855,6 +1864,8 @@ snapshots:
 
   '@esbuild/linux-x64@0.18.20':
     optional: true
+
+  '@esbuild/linux-x64@0.25.5': {}
 
   '@esbuild/netbsd-x64@0.18.20':
     optional: true
