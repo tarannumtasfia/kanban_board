@@ -23,9 +23,11 @@ const TextContent = styled.div``;
 
 const Icons = styled.div`
   display: flex;
-  justify-content: end;
+  justify-content: space-between;
+  align-items: center;
   padding: 2px;
 `;
+
 function bgcolorChange(props) {
   return props.isDragging
     ? "lightgreen"
@@ -38,7 +40,7 @@ function bgcolorChange(props) {
     : "#EAF4FC";
 }
 
-export default function Card({ task, index }) {
+export default function Card({ task, index, onDelete }) {
   return (
     <Draggable draggableId={`${task.id}`} key={task.id} index={index}>
       {(provided, snapshot) => (
@@ -46,30 +48,27 @@ export default function Card({ task, index }) {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           ref={provided.innerRef}
-          isDragging={snapshot.isDragging}
+          isDraggingOver={snapshot.isDraggingOver}
+         
         >
           <div style={{ display: "flex", justifyContent: "start", padding: 2 }}>
             <span>
-              <small>
-                #{task.id}
-                {"  "}
-              </small>
+              <small>#{task.id}{"  "}</small>
             </span>
           </div>
-          <div
-            style={{ display: "flex", justifyContent: "center", padding: 2 }}
-          >
+
+          <div style={{ display: "flex", justifyContent: "center", padding: 2 }}>
             <TextContent>{task.title}</TextContent>
           </div>
+
           <Icons>
-            <div >
+            <div>
               <svg
                 width="40"
                 height="40"
                 viewBox="0 0 64 64"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
-               
               >
                 <defs>
                   <linearGradient
@@ -88,6 +87,20 @@ export default function Card({ task, index }) {
                   <circle cx="16" cy="10" r="6" />
                   <path d="M8 28c0-4.4 3.6-8 8-8s8 3.6 8 8v2H8v-2z" />
                 </g>
+              </svg>
+            </div>
+
+            {/* Delete icon */}
+            <div onClick={() => onDelete(task.id)} style={{ cursor: "pointer" }}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="20"
+                viewBox="0 0 24 24"
+                width="20"
+                fill="red"
+              >
+                <path d="M0 0h24v24H0V0z" fill="none" />
+                <path d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-4.5l-1-1z" />
               </svg>
             </div>
           </Icons>

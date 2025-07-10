@@ -51,7 +51,7 @@ const TaskList = styled.div`
     min-height: 100px;
 `;
 
-export default function Column({ title, tasks, id }) {
+export default function Column({ title, tasks, id, onDelete })  {
     return (
         <Container className="column">
             <Title
@@ -71,7 +71,7 @@ export default function Column({ title, tasks, id }) {
                         isDraggingOver={snapshot.isDraggingOver}
                     >
                         {tasks.map((task, index) => (
-                            <Task key={index} index={index} task={task} />
+                            <Task key={task.id} index={index} task={task} onDelete={onDelete} />
                         ))}
                         {provided.placeholder}
                     </TaskList>

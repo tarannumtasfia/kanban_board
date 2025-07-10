@@ -3,24 +3,72 @@ import { DragDropContext } from "react-beautiful-dnd";
 import Column from "./Column";
 
 export default function Board() {
-  const [completed, setCompleted] = useState([]);
-  const [incomplete, setIncomplete] = useState([]);
-  const [backlog, setBacklog] = useState([]);
-  const [inReview, setInReview] = useState([]);
+ 
+
+// Load from localStorage or use empty array
+const getFromLocalStorage = (key) => {
+  const saved = localStorage.getItem(key);
+  return saved ? JSON.parse(saved) : [];
+};
+
+const [completed, setCompleted] = useState(() => getFromLocalStorage("completed"));
+const [incomplete, setIncomplete] = useState(() => getFromLocalStorage("incomplete"));
+const [backlog, setBacklog] = useState(() => getFromLocalStorage("backlog"));
+const [inReview, setInReview] = useState(() => getFromLocalStorage("inReview"));
+
+// Sync to localStorage whenever tasks change
+useEffect(() => {
+  localStorage.setItem("completed", JSON.stringify(completed));
+}, [completed]);
+
+useEffect(() => {
+  localStorage.setItem("incomplete", JSON.stringify(incomplete));
+}, [incomplete]);
+
+useEffect(() => {
+  localStorage.setItem("backlog", JSON.stringify(backlog));
+}, [backlog]);
+
+useEffect(() => {
+  localStorage.setItem("inReview", JSON.stringify(inReview));
+}, [inReview]);
+
 
   // New state to hold task input value
   const [newTaskText, setNewTaskText] = useState("");
+  
 
-  useEffect(() => {
+
+useEffect(() => {
+  const hasLocalData =
+    localStorage.getItem("completed") ||
+    localStorage.getItem("incomplete") ||
+    localStorage.getItem("inReview") ||
+    localStorage.getItem("backlog");
+
+  if (!hasLocalData) {
     fetch("http://localhost:4000")
       .then((res) => res.json())
       .then((tasks) => {
-        setCompleted(tasks.filter((t) => t.status === "done"));
-        setIncomplete(tasks.filter((t) => t.status === "todo"));
-        setInReview(tasks.filter((t) => t.status === "inReview"));
-        setBacklog(tasks.filter((t) => t.status === "backlog"));
+        const completed = tasks.filter((t) => t.status === "done");
+        const incomplete = tasks.filter((t) => t.status === "todo");
+        const inReview = tasks.filter((t) => t.status === "inReview");
+        const backlog = tasks.filter((t) => t.status === "backlog");
+
+        setCompleted(completed);
+        setIncomplete(incomplete);
+        setInReview(inReview);
+        setBacklog(backlog);
+
+        // Save to localStorage too
+        localStorage.setItem("completed", JSON.stringify(completed));
+        localStorage.setItem("incomplete", JSON.stringify(incomplete));
+        localStorage.setItem("inReview", JSON.stringify(inReview));
+        localStorage.setItem("backlog", JSON.stringify(backlog));
       });
-  }, []);
+  }
+}, []);
+
 
   const handleDragEnd = (result) => {
     const { destination, source, draggableId } = result;
@@ -54,27 +102,28 @@ export default function Board() {
     }
   }
 
-  function setNewState(destinationDroppableId, task) {
-    let updatedTask;
-    switch (destinationDroppableId) {
-      case "1": // TO DO
-        updatedTask = { ...task, completed: false };
-        setIncomplete([updatedTask, ...incomplete]);
-        break;
-      case "2": // DONE
-        updatedTask = { ...task, completed: true };
-        setCompleted([updatedTask, ...completed]);
-        break;
-      case "3": // IN REVIEW
-        updatedTask = { ...task, completed: false };
-        setInReview([updatedTask, ...inReview]);
-        break;
-      case "4": // BACKLOG
-        updatedTask = { ...task, completed: false };
-        setBacklog([updatedTask, ...backlog]);
-        break;
-    }
+ function setNewState(destinationDroppableId, task) {
+  let updatedTask;
+  switch (destinationDroppableId) {
+    case "1": // TO DO
+      updatedTask = { ...task, completed: false };
+      setIncomplete([...incomplete, updatedTask]);
+      break;
+    case "2": // DONE
+      updatedTask = { ...task, completed: true };
+      setCompleted([...completed, updatedTask]);
+      break;
+    case "3": // IN REVIEW
+      updatedTask = { ...task, completed: false };
+      setInReview([...inReview, updatedTask]);
+      break;
+    case "4": // BACKLOG
+      updatedTask = { ...task, completed: false };
+      setBacklog([...backlog, updatedTask]);
+      break;
   }
+}
+
 
   function findItemById(id, array) {
     return array.find((item) => item.id == id);
@@ -105,7 +154,12 @@ export default function Board() {
   setIncomplete([...incomplete, newTask]);
   setNewTaskText("");
 };
-
+const deleteTask = (id) => {
+  setIncomplete((prev) => prev.filter((t) => t.id !== id));
+  setCompleted((prev) => prev.filter((t) => t.id !== id));
+  setInReview((prev) => prev.filter((t) => t.id !== id));
+  setBacklog((prev) => prev.filter((t) => t.id !== id));
+};
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
@@ -165,10 +219,10 @@ export default function Board() {
           boxSizing: "border-box",
         }}
       >
-        <Column title={"TO DO"} tasks={incomplete} id={"1"} />
-        <Column title={"DONE"} tasks={completed} id={"2"} />
-        <Column title={"IN REVIEW"} tasks={inReview} id={"3"} />
-        <Column title={"BACKLOG"} tasks={backlog} id={"4"} />
+        <Column title={"TO DO"} tasks={incomplete} id={"1"} onDelete={deleteTask} />
+        <Column title={"DONE"} tasks={completed} id={"2"} onDelete={deleteTask} />
+        <Column title={"IN REVIEW"} tasks={inReview} id={"3"} onDelete={deleteTask} />
+        <Column title={"BACKLOG"} tasks={backlog} id={"4"} onDelete={deleteTask}/>
       </div>
     </DragDropContext>
   );
