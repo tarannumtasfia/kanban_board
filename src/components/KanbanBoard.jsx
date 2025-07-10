@@ -47,7 +47,7 @@ useEffect(() => {
     localStorage.getItem("backlog");
 
   if (!hasLocalData) {
-    fetch("http://localhost:4000")
+       fetch("https://kanban-board-api-8jph.onrender.com/")
       .then((res) => res.json())
       .then((tasks) => {
         const completed = tasks.filter((t) => t.status === "done");
@@ -71,19 +71,71 @@ useEffect(() => {
 
 
   const handleDragEnd = (result) => {
-    const { destination, source, draggableId } = result;
+  const { destination, source, draggableId } = result;
 
-    if (!destination || source.droppableId === destination.droppableId) return;
+  if (!destination) return;
 
-    deletePreviousState(source.droppableId, draggableId);
+  // If dropped in the same position, do nothing
+  if (
+    destination.droppableId === source.droppableId &&
+    destination.index === source.index
+  ) return;
 
-    const task = findItemById(
-      draggableId,
-      [...incomplete, ...completed, ...inReview, ...backlog]
-    );
-
-    setNewState(destination.droppableId, task);
+  // Helper to get and set list by droppableId
+  const getList = (id) => {
+    switch (id) {
+      case "1": return [...incomplete];
+      case "2": return [...completed];
+      case "3": return [...inReview];
+      case "4": return [...backlog];
+      default: return [];
+    }
   };
+
+  const setList = (id, list) => {
+    switch (id) {
+      case "1": setIncomplete(list); break;
+      case "2": setCompleted(list); break;
+      case "3": setInReview(list); break;
+      case "4": setBacklog(list); break;
+    }
+  };
+
+  // Remove the task from source list
+  const sourceList = getList(source.droppableId);
+  const taskIndex = sourceList.findIndex((task) => task.id === draggableId);
+  const [movedTask] = sourceList.splice(taskIndex, 1);
+
+  // Update task's completed & status based on destination column
+  let updatedTask = { ...movedTask };
+  switch (destination.droppableId) {
+    case "1":
+      updatedTask.completed = false;
+      updatedTask.status = "todo";
+      break;
+    case "2":
+      updatedTask.completed = true;
+      updatedTask.status = "done";
+      break;
+    case "3":
+      updatedTask.completed = false;
+      updatedTask.status = "inReview";
+      break;
+    case "4":
+      updatedTask.completed = false;
+      updatedTask.status = "backlog";
+      break;
+  }
+
+  // Insert task in destination list at correct index
+  const destinationList = getList(destination.droppableId);
+  destinationList.splice(destination.index, 0, updatedTask);
+
+  // Update both source and destination lists
+  setList(source.droppableId, sourceList);
+  setList(destination.droppableId, destinationList);
+};
+
 
   function deletePreviousState(sourceDroppableId, taskId) {
     switch (sourceDroppableId) {
