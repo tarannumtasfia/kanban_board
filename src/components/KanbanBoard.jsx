@@ -47,8 +47,13 @@ useEffect(() => {
     localStorage.getItem("backlog");
 
   if (!hasLocalData) {
-       fetch("https://kanban-board-api-8jph.onrender.com/")
-      .then((res) => res.json())
+    fetch("https://kanban-board-api-8jph.onrender.com/")
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Server responded with ${res.status}`);
+        }
+        return res.json();
+      })
       .then((tasks) => {
         const completed = tasks.filter((t) => t.status === "done");
         const incomplete = tasks.filter((t) => t.status === "todo");
@@ -60,14 +65,18 @@ useEffect(() => {
         setInReview(inReview);
         setBacklog(backlog);
 
-        // Save to localStorage too
         localStorage.setItem("completed", JSON.stringify(completed));
         localStorage.setItem("incomplete", JSON.stringify(incomplete));
         localStorage.setItem("inReview", JSON.stringify(inReview));
         localStorage.setItem("backlog", JSON.stringify(backlog));
+      })
+      .catch((error) => {
+        console.error("❌ Fetching tasks failed:", error);
+        alert("Failed to load tasks from the server. Check console for details.");
       });
   }
 }, []);
+
 
 
   const handleDragEnd = (result) => {
