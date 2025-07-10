@@ -40,42 +40,36 @@ useEffect(() => {
 
 
 useEffect(() => {
-  const hasLocalData =
-    localStorage.getItem("completed") ||
-    localStorage.getItem("incomplete") ||
-    localStorage.getItem("inReview") ||
-    localStorage.getItem("backlog");
+  console.log("📡 Fetching tasks...");
 
-  if (!hasLocalData) {
-    fetch("https://kanban-board-api-8jph.onrender.com/")
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Server responded with ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((tasks) => {
-        const completed = tasks.filter((t) => t.status === "done");
-        const incomplete = tasks.filter((t) => t.status === "todo");
-        const inReview = tasks.filter((t) => t.status === "inReview");
-        const backlog = tasks.filter((t) => t.status === "backlog");
+  fetch("https://kanban-board-api-8jph.onrender.com/")
+    .then((res) => {
+      console.log("🌐 Response received:", res);
+      return res.json();
+    })
+    .then((tasks) => {
+      console.log("✅ Parsed tasks:", tasks);
 
-        setCompleted(completed);
-        setIncomplete(incomplete);
-        setInReview(inReview);
-        setBacklog(backlog);
+      const completed = tasks.filter((t) => t.status === "done");
+      const incomplete = tasks.filter((t) => t.status === "todo");
+      const inReview = tasks.filter((t) => t.status === "inReview");
+      const backlog = tasks.filter((t) => t.status === "backlog");
 
-        localStorage.setItem("completed", JSON.stringify(completed));
-        localStorage.setItem("incomplete", JSON.stringify(incomplete));
-        localStorage.setItem("inReview", JSON.stringify(inReview));
-        localStorage.setItem("backlog", JSON.stringify(backlog));
-      })
-      .catch((error) => {
-        console.error("❌ Fetching tasks failed:", error);
-        alert("Failed to load tasks from the server. Check console for details.");
-      });
-  }
+      setCompleted(completed);
+      setIncomplete(incomplete);
+      setInReview(inReview);
+      setBacklog(backlog);
+
+      localStorage.setItem("completed", JSON.stringify(completed));
+      localStorage.setItem("incomplete", JSON.stringify(incomplete));
+      localStorage.setItem("inReview", JSON.stringify(inReview));
+      localStorage.setItem("backlog", JSON.stringify(backlog));
+    })
+    .catch((err) => {
+      console.error("❌ Fetch error:", err);
+    });
 }, []);
+
 
 
 
