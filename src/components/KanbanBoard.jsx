@@ -213,26 +213,28 @@ export default function Board() {
   }
 
   // Function to add new task to the TO DO column
-  const addTask = () => {
-    if (!newTaskText.trim()) return;
+ const addTask = () => {
+  if (!newTaskText.trim()) return;
 
-    // Count total tasks across all columns
-    const totalTasks =
-      incomplete.length + completed.length + inReview.length + backlog.length;
+  // Combine all tasks from all columns
+  const allTasks = [...incomplete, ...completed, ...inReview, ...backlog];
 
-    // New id is totalTasks + 1, converted to string
-    const newId = (totalTasks + 1).toString();
+  // Find the max numeric ID used so far
+  const maxId = allTasks.reduce((max, task) => Math.max(max, Number(task.id)), 0);
 
-    const newTask = {
-      id: newId,
-      title: newTaskText,
-      completed: false,
-      status: "todo",
-    };
+  // New id is maxId + 1 converted to string
+  const newId = (maxId + 1).toString();
 
-    setIncomplete([...incomplete, newTask]);
-    setNewTaskText("");
+  const newTask = {
+    id: newId,
+    title: newTaskText,
+    completed: false,
+    status: "todo",
   };
+
+  setIncomplete([...incomplete, newTask]);
+  setNewTaskText("");
+};
 
   const deleteTask = (id) => {
     setIncomplete((prev) => prev.filter((t) => t.id !== id));
