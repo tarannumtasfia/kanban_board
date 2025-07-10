@@ -34,36 +34,49 @@ export default function Board() {
   // New state to hold task input value
   const [newTaskText, setNewTaskText] = useState("");
 
-  useEffect(() => {
-    console.log("📡 Fetching tasks...");
+ useEffect(() => {
+  // Check if there is any saved data in localStorage
+  const hasSavedData =
+    localStorage.getItem("completed") ||
+    localStorage.getItem("incomplete") ||
+    localStorage.getItem("inReview") ||
+    localStorage.getItem("backlog");
 
-    fetch("https://kanban-board-api-8jph.onrender.com/")
-      .then((res) => {
-        console.log("🌐 Response received:", res);
-        return res.json();
-      })
-      .then((tasks) => {
-        console.log("✅ Parsed tasks:", tasks);
+  if (hasSavedData) {
+    console.log("Using saved data from localStorage, skipping fetch");
+    return; // skip fetch if we already have saved state
+  }
 
-        const completed = tasks.filter((t) => t.status === "done");
-        const incomplete = tasks.filter((t) => t.status === "todo");
-        const inReview = tasks.filter((t) => t.status === "inReview");
-        const backlog = tasks.filter((t) => t.status === "backlog");
+  console.log("📡 Fetching tasks from API...");
 
-        setCompleted(completed);
-        setIncomplete(incomplete);
-        setInReview(inReview);
-        setBacklog(backlog);
+  fetch("https://kanban-board-api-8jph.onrender.com/")
+    .then((res) => {
+      console.log("🌐 Response received:", res);
+      return res.json();
+    })
+    .then((tasks) => {
+      console.log("✅ Parsed tasks:", tasks);
 
-        localStorage.setItem("completed", JSON.stringify(completed));
-        localStorage.setItem("incomplete", JSON.stringify(incomplete));
-        localStorage.setItem("inReview", JSON.stringify(inReview));
-        localStorage.setItem("backlog", JSON.stringify(backlog));
-      })
-      .catch((err) => {
-        console.error("❌ Fetch error:", err);
-      });
-  }, []);
+      const completed = tasks.filter((t) => t.status === "done");
+      const incomplete = tasks.filter((t) => t.status === "todo");
+      const inReview = tasks.filter((t) => t.status === "inReview");
+      const backlog = tasks.filter((t) => t.status === "backlog");
+
+      setCompleted(completed);
+      setIncomplete(incomplete);
+      setInReview(inReview);
+      setBacklog(backlog);
+
+      localStorage.setItem("completed", JSON.stringify(completed));
+      localStorage.setItem("incomplete", JSON.stringify(incomplete));
+      localStorage.setItem("inReview", JSON.stringify(inReview));
+      localStorage.setItem("backlog", JSON.stringify(backlog));
+    })
+    .catch((err) => {
+      console.error("❌ Fetch error:", err);
+    });
+}, []);
+
 
   const handleDragEnd = (result) => {
     const { destination, source, draggableId } = result;
