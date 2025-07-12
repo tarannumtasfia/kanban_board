@@ -39,51 +39,39 @@ export default function Board() {
   const [newTaskText, setNewTaskText] = useState("");
 
   // Improved fetch logic with validation
-  useEffect(() => {
-    const isValidData = (key) => {
-      try {
-        const data = JSON.parse(localStorage.getItem(key));
-        return Array.isArray(data) && data.length > 0;
-      } catch {
-        return false;
-      }
-    };
+useEffect(() => {
+  const hasFetched = localStorage.getItem("hasFetched");
 
-    const allHaveData =
-      isValidData("completed") &&
-      isValidData("incomplete") &&
-      isValidData("inReview") &&
-      isValidData("backlog");
+  if (hasFetched) {
+    console.log("Using saved data from localStorage, skipping fetch");
+    return;
+  }
 
-    if (allHaveData) {
-      console.log("Using saved data from localStorage, skipping fetch");
-      return;
-    }
+  console.log("📡 Fetching tasks from API...");
+  fetch("https://kanban-board-api.vercel.app/")
+    .then((res) => res.json())
+    .then((tasks) => {
+      const completed = tasks.filter((t) => t.status === "done");
+      const incomplete = tasks.filter((t) => t.status === "todo");
+      const inReview = tasks.filter((t) => t.status === "inReview");
+      const backlog = tasks.filter((t) => t.status === "backlog");
 
-    console.log("📡 Fetching tasks from API...");
+      setCompleted(completed);
+      setIncomplete(incomplete);
+      setInReview(inReview);
+      setBacklog(backlog);
 
-    fetch("https://kanban-board-api.vercel.app/")
-      .then((res) => res.json())
-      .then((tasks) => {
-        const completed = tasks.filter((t) => t.status === "done");
-        const incomplete = tasks.filter((t) => t.status === "todo");
-        const inReview = tasks.filter((t) => t.status === "inReview");
-        const backlog = tasks.filter((t) => t.status === "backlog");
+      localStorage.setItem("completed", JSON.stringify(completed));
+      localStorage.setItem("incomplete", JSON.stringify(incomplete));
+      localStorage.setItem("inReview", JSON.stringify(inReview));
+      localStorage.setItem("backlog", JSON.stringify(backlog));
+      localStorage.setItem("hasFetched", "true"); // ✅ Prevent refetch
+    })
+    .catch((err) => {
+      console.error("❌ Fetch error:", err);
+    });
+}, []);
 
-        setCompleted(completed);
-        setIncomplete(incomplete);
-        setInReview(inReview);
-        setBacklog(backlog);
-
-        localStorage.setItem("completed", JSON.stringify(completed));
-        localStorage.setItem("incomplete", JSON.stringify(incomplete));
-        localStorage.setItem("inReview", JSON.stringify(inReview));
-        localStorage.setItem("backlog", JSON.stringify(backlog));
-      })
-      .catch((err) => {
-        console.error("❌ Fetch error:", err);
-      });
-  }, []);
 
   // Drag and drop logic
   const handleDragEnd = (result) => {
