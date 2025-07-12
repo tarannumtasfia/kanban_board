@@ -184,19 +184,56 @@ export default function Board() {
 
   // Delete task
   const deleteTask = (id) => {
-    setIncomplete((prev) => prev.filter((t) => t.id !== id));
-    setCompleted((prev) => prev.filter((t) => t.id !== id));
-    setInReview((prev) => prev.filter((t) => t.id !== id));
-    setBacklog((prev) => prev.filter((t) => t.id !== id));
-  };
-  const editTask = (taskId, newTitle) => {
-  const updateTasks = (tasks) =>
-    tasks.map((task) => (task.id === taskId ? { ...task, title: newTitle } : task));
+  setIncomplete((prev) => {
+    const updated = prev.filter((t) => t.id !== id);
+    localStorage.setItem("incomplete", JSON.stringify(updated));
+    return updated;
+  });
+  setCompleted((prev) => {
+    const updated = prev.filter((t) => t.id !== id);
+    localStorage.setItem("completed", JSON.stringify(updated));
+    return updated;
+  });
+  setInReview((prev) => {
+    const updated = prev.filter((t) => t.id !== id);
+    localStorage.setItem("inReview", JSON.stringify(updated));
+    return updated;
+  });
+  setBacklog((prev) => {
+    const updated = prev.filter((t) => t.id !== id);
+    localStorage.setItem("backlog", JSON.stringify(updated));
+    return updated;
+  });
+};
 
-  setIncomplete((prev) => updateTasks(prev));
-  setCompleted((prev) => updateTasks(prev));
-  setInReview((prev) => updateTasks(prev));
-  setBacklog((prev) => updateTasks(prev));
+const editTask = (taskId, newTitle) => {
+  const updateTasks = (tasks) => {
+    const updated = tasks.map((task) =>
+      task.id === taskId ? { ...task, title: newTitle } : task
+    );
+    return updated;
+  };
+
+  setIncomplete((prev) => {
+    const updated = updateTasks(prev);
+    localStorage.setItem("incomplete", JSON.stringify(updated));
+    return updated;
+  });
+  setCompleted((prev) => {
+    const updated = updateTasks(prev);
+    localStorage.setItem("completed", JSON.stringify(updated));
+    return updated;
+  });
+  setInReview((prev) => {
+    const updated = updateTasks(prev);
+    localStorage.setItem("inReview", JSON.stringify(updated));
+    return updated;
+  });
+  setBacklog((prev) => {
+    const updated = updateTasks(prev);
+    localStorage.setItem("backlog", JSON.stringify(updated));
+    return updated;
+  });
 };
 
 
