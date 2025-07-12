@@ -3,10 +3,14 @@ import { DragDropContext } from "react-beautiful-dnd";
 import Column from "./Column";
 
 export default function Board() {
-  // Load from localStorage or use empty array
+  // Load from localStorage or default empty array
   const getFromLocalStorage = (key) => {
-    const saved = localStorage.getItem(key);
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem(key);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
   };
 
   const [completed, setCompleted] = useState(() => getFromLocalStorage("completed"));
@@ -34,63 +38,63 @@ export default function Board() {
   // New state to hold task input value
   const [newTaskText, setNewTaskText] = useState("");
 
- useEffect(() => {
-  // Check if there is any saved data in localStorage
-  const hasSavedData =
-    localStorage.getItem("completed") ||
-    localStorage.getItem("incomplete") ||
-    localStorage.getItem("inReview") ||
-    localStorage.getItem("backlog");
+  // Improved fetch logic with validation
+  useEffect(() => {
+    const isValidData = (key) => {
+      try {
+        const data = JSON.parse(localStorage.getItem(key));
+        return Array.isArray(data) && data.length > 0;
+      } catch {
+        return false;
+      }
+    };
 
-  if (hasSavedData) {
-    console.log("Using saved data from localStorage, skipping fetch");
-    return; // skip fetch if we already have saved state
-  }
+    const allHaveData =
+      isValidData("completed") &&
+      isValidData("incomplete") &&
+      isValidData("inReview") &&
+      isValidData("backlog");
 
-  console.log("📡 Fetching tasks from API...");
+    if (allHaveData) {
+      console.log("Using saved data from localStorage, skipping fetch");
+      return;
+    }
 
-  fetch("https://kanban-board-api.vercel.app/")
-    .then((res) => {
-      console.log("🌐 Response received:", res);
-      return res.json();
-    })
-    .then((tasks) => {
-      console.log("✅ Parsed tasks:", tasks);
+    console.log("📡 Fetching tasks from API...");
 
-      const completed = tasks.filter((t) => t.status === "done");
-      const incomplete = tasks.filter((t) => t.status === "todo");
-      const inReview = tasks.filter((t) => t.status === "inReview");
-      const backlog = tasks.filter((t) => t.status === "backlog");
+    fetch("https://kanban-board-api.vercel.app/")
+      .then((res) => res.json())
+      .then((tasks) => {
+        const completed = tasks.filter((t) => t.status === "done");
+        const incomplete = tasks.filter((t) => t.status === "todo");
+        const inReview = tasks.filter((t) => t.status === "inReview");
+        const backlog = tasks.filter((t) => t.status === "backlog");
 
-      setCompleted(completed);
-      setIncomplete(incomplete);
-      setInReview(inReview);
-      setBacklog(backlog);
+        setCompleted(completed);
+        setIncomplete(incomplete);
+        setInReview(inReview);
+        setBacklog(backlog);
 
-      localStorage.setItem("completed", JSON.stringify(completed));
-      localStorage.setItem("incomplete", JSON.stringify(incomplete));
-      localStorage.setItem("inReview", JSON.stringify(inReview));
-      localStorage.setItem("backlog", JSON.stringify(backlog));
-    })
-    .catch((err) => {
-      console.error("❌ Fetch error:", err);
-    });
-}, []);
+        localStorage.setItem("completed", JSON.stringify(completed));
+        localStorage.setItem("incomplete", JSON.stringify(incomplete));
+        localStorage.setItem("inReview", JSON.stringify(inReview));
+        localStorage.setItem("backlog", JSON.stringify(backlog));
+      })
+      .catch((err) => {
+        console.error("❌ Fetch error:", err);
+      });
+  }, []);
 
-
+  // Drag and drop logic
   const handleDragEnd = (result) => {
     const { destination, source, draggableId } = result;
-
     if (!destination) return;
-
-    // If dropped in the same position, do nothing
     if (
       destination.droppableId === source.droppableId &&
       destination.index === source.index
     )
       return;
 
-    // Helper to get and set list by droppableId
     const getList = (id) => {
       switch (id) {
         case "1":
@@ -123,12 +127,10 @@ export default function Board() {
       }
     };
 
-    // Remove the task from source list
     const sourceList = getList(source.droppableId);
     const taskIndex = sourceList.findIndex((task) => task.id === draggableId);
     const [movedTask] = sourceList.splice(taskIndex, 1);
 
-    // Update task's completed & status based on destination column
     let updatedTask = { ...movedTask };
     switch (destination.droppableId) {
       case "1":
@@ -149,93 +151,38 @@ export default function Board() {
         break;
     }
 
-    // Insert task in destination list at correct index
     const destinationList = getList(destination.droppableId);
 
     if (destination.droppableId === "4") {
-      // Always add to end of backlog
       destinationList.push(updatedTask);
     } else {
-      // Insert at the dropped index for other columns
       destinationList.splice(destination.index, 0, updatedTask);
     }
 
-    // Update both source and destination lists
     setList(source.droppableId, sourceList);
     setList(destination.droppableId, destinationList);
   };
 
-  function deletePreviousState(sourceDroppableId, taskId) {
-    switch (sourceDroppableId) {
-      case "1":
-        setIncomplete(removeItemById(taskId, incomplete));
-        break;
-      case "2":
-        setCompleted(removeItemById(taskId, completed));
-        break;
-      case "3":
-        setInReview(removeItemById(taskId, inReview));
-        break;
-      case "4":
-        setBacklog(removeItemById(taskId, backlog));
-        break;
-    }
-  }
+  // Add new task
+  const addTask = () => {
+    if (!newTaskText.trim()) return;
 
-  function setNewState(destinationDroppableId, task) {
-    let updatedTask;
-    switch (destinationDroppableId) {
-      case "1": // TO DO
-        updatedTask = { ...task, completed: false };
-        setIncomplete([...incomplete, updatedTask]);
-        break;
-      case "2": // DONE
-        updatedTask = { ...task, completed: true };
-        setCompleted([...completed, updatedTask]);
-        break;
-      case "3": // IN REVIEW
-        updatedTask = { ...task, completed: false };
-        setInReview([...inReview, updatedTask]);
-        break;
-      case "4": // BACKLOG
-        updatedTask = { ...task, completed: false };
-        setBacklog([...backlog, updatedTask]);
-        break;
-    }
-  }
+    const allTasks = [...incomplete, ...completed, ...inReview, ...backlog];
+    const maxId = allTasks.reduce((max, task) => Math.max(max, Number(task.id)), 0);
+    const newId = (maxId + 1).toString();
 
-  function findItemById(id, array) {
-    return array.find((item) => item.id == id);
-  }
+    const newTask = {
+      id: newId,
+      title: newTaskText,
+      completed: false,
+      status: "todo",
+    };
 
-  function removeItemById(id, array) {
-    return array.filter((item) => item.id != id);
-  }
-
-  // Function to add new task to the TO DO column
- const addTask = () => {
-  if (!newTaskText.trim()) return;
-
-  // Combine all tasks from all columns
-  const allTasks = [...incomplete, ...completed, ...inReview, ...backlog];
-
-  // Find the max numeric ID used so far
-  const maxId = allTasks.reduce((max, task) => Math.max(max, Number(task.id)), 0);
-
-  // New id is maxId + 1 converted to string
-  const newId = (maxId + 1).toString();
-
-  const newTask = {
-    id: newId,
-    title: newTaskText,
-    completed: false,
-    status: "todo",
+    setIncomplete([...incomplete, newTask]);
+    setNewTaskText("");
   };
 
-  setIncomplete([...incomplete, newTask]);
-  setNewTaskText("");
-};
-
+  // Delete task
   const deleteTask = (id) => {
     setIncomplete((prev) => prev.filter((t) => t.id !== id));
     setCompleted((prev) => prev.filter((t) => t.id !== id));
@@ -247,7 +194,6 @@ export default function Board() {
     <DragDropContext onDragEnd={handleDragEnd}>
       <h2 style={{ textAlign: "center" }}>PROGRESS BOARD</h2>
 
-      {/* Add Task Input & Button */}
       <div
         style={{
           maxWidth: "1300px",
