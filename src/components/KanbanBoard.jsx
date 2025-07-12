@@ -49,7 +49,7 @@ export default function Board() {
 
   console.log("📡 Fetching tasks from API...");
 
-  fetch("https://kanban-board-api-8jph.onrender.com/")
+  fetch("https://kanban-board-api.vercel.app/")
     .then((res) => {
       console.log("🌐 Response received:", res);
       return res.json();
