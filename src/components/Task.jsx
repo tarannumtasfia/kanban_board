@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Draggable } from "react-beautiful-dnd";
 import styled from "styled-components";
 import { Avatar } from "antd";
@@ -19,17 +19,28 @@ const Container = styled.div`
   flex-direction: column;
 `;
 
-const TextContent = styled.div``;
+const TextContent = styled.div`
+  /* Optional styling */
+`;
+
+const InputEdit = styled.input`
+  width: 100%;
+  padding: 6px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+`;
 
 const Icons = styled.div`
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
+  gap: 10px;
   padding: 2px;
 `;
 
 function bgcolorChange(props) {
-  return props.isDragging
+  return props.isDraggingOver
     ? "lightgreen"
     : props.isDraggable
     ? props.isBacklog
@@ -40,7 +51,21 @@ function bgcolorChange(props) {
     : "#EAF4FC";
 }
 
-export default function Card({ task, index, onDelete }) {
+export default function Card({ task, index, onDelete, onEdit }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState(task.title);
+
+  const handleSave = () => {
+    if (editText.trim() === "") return; // Prevent empty task
+    onEdit(task.id, editText.trim());
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditText(task.title);
+    setIsEditing(false);
+  };
+
   return (
     <Draggable draggableId={`${task.id}`} key={task.id} index={index}>
       {(provided, snapshot) => (
@@ -49,46 +74,77 @@ export default function Card({ task, index, onDelete }) {
           {...provided.dragHandleProps}
           ref={provided.innerRef}
           isDraggingOver={snapshot.isDraggingOver}
-         
+          isDraggable
+          isBacklog={task.isBacklog}
         >
           <div style={{ display: "flex", justifyContent: "start", padding: 2 }}>
-            <span>
-              <small>#{task.id}{"  "}</small>
-            </span>
+            <small>#{task.id}{"  "}</small>
           </div>
 
           <div style={{ display: "flex", justifyContent: "center", padding: 2 }}>
-            <TextContent>{task.title}</TextContent>
+            {isEditing ? (
+              <InputEdit
+                type="text"
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSave();
+                  }
+                  if (e.key === "Escape") {
+                    handleCancel();
+                  }
+                }}
+                autoFocus
+              />
+            ) : (
+              <TextContent>{task.title}</TextContent>
+            )}
           </div>
 
           <Icons>
-            <div>
-              <svg
-                width="40"
-                height="40"
-                viewBox="0 0 64 64"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
+            {/* Pencil (Edit) icon */}
+            {!isEditing && (
+              <button
+                onClick={() => setIsEditing(true)}
+                aria-label="Edit task"
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 0,
+                }}
               >
-                <defs>
-                  <linearGradient
-                    id={`grad-${task.id}`}
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop offset="0%" stopColor="#4f46e5" />
-                    <stop offset="100%" stopColor="#9333ea" />
-                  </linearGradient>
-                </defs>
-                <circle cx="32" cy="32" r="32" fill={`url(#grad-${task.id})`} />
-                <g transform="translate(16, 14)" fill="#fff">
-                  <circle cx="16" cy="10" r="6" />
-                  <path d="M8 28c0-4.4 3.6-8 8-8s8 3.6 8 8v2H8v-2z" />
-                </g>
-              </svg>
-            </div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="feather feather-edit-2"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M17 3a2.828 2.828 0 014 4L7 21H3v-4L17 3z" />
+                </svg>
+              </button>
+            )}
+
+            {/* Save and Cancel buttons when editing */}
+            {isEditing && (
+              <>
+                <button onClick={handleSave} aria-label="Save task" style={{ cursor: "pointer" }}>
+                  Save
+                </button>
+                <button onClick={handleCancel} aria-label="Cancel edit" style={{ cursor: "pointer" }}>
+                  Cancel
+                </button>
+              </>
+            )}
+
+            
 
             {/* Delete icon */}
             <div onClick={() => onDelete(task.id)} style={{ cursor: "pointer" }}>

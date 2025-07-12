@@ -189,6 +189,16 @@ export default function Board() {
     setInReview((prev) => prev.filter((t) => t.id !== id));
     setBacklog((prev) => prev.filter((t) => t.id !== id));
   };
+  const editTask = (taskId, newTitle) => {
+  const updateTasks = (tasks) =>
+    tasks.map((task) => (task.id === taskId ? { ...task, title: newTitle } : task));
+
+  setIncomplete((prev) => updateTasks(prev));
+  setCompleted((prev) => updateTasks(prev));
+  setInReview((prev) => updateTasks(prev));
+  setBacklog((prev) => updateTasks(prev));
+};
+
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
@@ -247,10 +257,10 @@ export default function Board() {
           boxSizing: "border-box",
         }}
       >
-        <Column title={"TO DO"} tasks={incomplete} id={"1"} onDelete={deleteTask} />
-        <Column title={"DONE"} tasks={completed} id={"2"} onDelete={deleteTask} />
-        <Column title={"IN REVIEW"} tasks={inReview} id={"3"} onDelete={deleteTask} />
-        <Column title={"BACKLOG"} tasks={backlog} id={"4"} onDelete={deleteTask} />
+        <Column title={"TO DO"} tasks={incomplete} id={"1"} onDelete={deleteTask} onEdit={editTask}/>
+        <Column title={"DONE"} tasks={completed} id={"2"} onDelete={deleteTask}   onEdit={editTask} />
+        <Column title={"IN REVIEW"} tasks={inReview} id={"3"} onDelete={deleteTask}  onEdit={editTask}/>
+        <Column title={"BACKLOG"} tasks={backlog} id={"4"} onDelete={deleteTask}  onEdit={editTask}/>
       </div>
     </DragDropContext>
   );
