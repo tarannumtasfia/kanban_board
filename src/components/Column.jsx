@@ -71,7 +71,7 @@ export default function Column({ title, tasks, id, onDelete,onEdit,color })  {
                         isDraggingOver={snapshot.isDraggingOver}
                     >
                         {tasks.map((task, index) => (
-                            <Task key={task.id} index={index} task={task} onDelete={onDelete} onEdit={onEdit} />
+                            <Task key={task.id} index={index} task={task} onDelete={onDelete} onEdit={onEdit} bgcolor={color} />
                         ))}
                         {provided.placeholder}
                     </TaskList>

@@ -12,7 +12,7 @@ const Container = styled.div`
   min-height: 120px;
   margin-left: 10px;
   margin-right: 10px;
-  background-color: ${(props) => bgcolorChange(props)};
+  background-color: ${(props) => props.bgcolor || "#EAF4FC"};
   cursor: pointer;
   display: flex;
   justify-content: space-between;
@@ -51,7 +51,7 @@ function bgcolorChange(props) {
     : "#EAF4FC";
 }
 
-export default function Card({ task, index, onDelete, onEdit }) {
+export default function Card({ task, index, onDelete, onEdit, bgcolor }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(task.title);
 
