@@ -73,6 +73,7 @@ export default function Card({ task, index, onDelete, onEdit, bgcolor }) {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           ref={provided.innerRef}
+          bgcolor={bgcolor} 
           isDraggingOver={snapshot.isDraggingOver}
           isDraggable
           isBacklog={task.isBacklog}
