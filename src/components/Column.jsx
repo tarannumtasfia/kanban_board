@@ -5,7 +5,7 @@ import "./scroll.css";
 import { Droppable } from "react-beautiful-dnd";
 
 const Container = styled.div`
-  background-color: #f4f5f7;
+  backgroundColor: color,
   border-radius: 2.5px;
   width: 100%;
   max-width: 300px; /* Optional for desktop control */
@@ -51,12 +51,12 @@ const TaskList = styled.div`
     min-height: 100px;
 `;
 
-export default function Column({ title, tasks, id, onDelete,onEdit })  {
+export default function Column({ title, tasks, id, onDelete,onEdit,color })  {
     return (
         <Container className="column">
             <Title
                 style={{
-                    backgroundColor: "lightblue",
+                    backgroundColor: color,
                     position: "sticky",
                     top: "0",
                 }}
