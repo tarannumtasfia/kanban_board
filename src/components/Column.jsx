@@ -9,7 +9,7 @@ const Container = styled.div`
   border-radius: 2.5px;
   width: 100%;
   max-width: 300px; /* Optional for desktop control */
-  height: 900px;
+  height: 300px;
   overflow-y: scroll;
   border: 1px solid gray;
   box-sizing: border-box;
