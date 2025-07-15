@@ -282,10 +282,10 @@ const editTask = (taskId, newTitle) => {
           boxSizing: "border-box",
         }}
       >
-        <Column title={"TO DO"} tasks={incomplete} id={"1"} onDelete={deleteTask} onEdit={editTask}/>
-        <Column title={"DONE"} tasks={completed} id={"2"} onDelete={deleteTask}   onEdit={editTask} />
-        <Column title={"IN REVIEW"} tasks={inReview} id={"3"} onDelete={deleteTask}  onEdit={editTask}/>
-        <Column title={"BACKLOG"} tasks={backlog} id={"4"} onDelete={deleteTask}  onEdit={editTask}/>
+        <Column title={"TO DO"} tasks={incomplete} id={"1"} color="#FFF9C4" onDelete={deleteTask} onEdit={editTask}/>
+        <Column title={"DONE"} tasks={completed} id={"2"} color="#C8E6C9" onDelete={deleteTask} onEdit={editTask} />
+        <Column title={"IN REVIEW"} tasks={inReview} id={"3"} color="#BBDEFB" onDelete={deleteTask} onEdit={editTask}/>
+        <Column title={"BACKLOG"} tasks={backlog} id={"4"} color="#FFE0B2" onDelete={deleteTask} onEdit={editTask}/>
       </div>
     </DragDropContext>
   );
