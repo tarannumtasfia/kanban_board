@@ -1,23 +1,28 @@
-⚡ Trello Clone – A drag-and-drop task management web app inspired by Trello. Built using React, react-beautiful-dnd, styled-components, and Ant Design.
+# Kanban Board
 
-✅ Features:
+A drag-and-drop Kanban board built with React, dnd-kit, and styled-components.
 
-1. Kanban board with draggable tasks
+## Requirements
 
-2. Custom card design with SVG avatars
+- Node.js `>= 20.x`
+- npm
 
-3. Dynamic background colors for status (backlog, in-progress, done)
+## Setup
 
-4. Responsive layout and minimal UI
+```bash
+npm install
+```
 
-🚀 Deployed on [Vercel/Netlify/Render] — try it live here: [Your Live Link]
+## Scripts
 
-💻 Tech Stack:
+```bash
+npm run dev       # Start development server
+npm run build     # Build for production
+npm run preview   # Preview production build locally
+npm start         # Serve the production build
+```
 
-1. React / Vite
+## Notes
 
-2. styled-components
-
-3. react-beautiful-dnd
-
-4. Ant Design (for UI elements)
+- On first load, tasks are fetched from the remote API and saved to localStorage.
+- After that, all data is read from localStorage — no further API calls are made.

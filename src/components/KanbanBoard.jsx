@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { DragDropContext } from "react-beautiful-dnd";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import Column from "./Column";
 
 export default function Board() {
@@ -39,116 +45,107 @@ export default function Board() {
   const [newTaskText, setNewTaskText] = useState("");
 
   // Improved fetch logic with validation
-useEffect(() => {
-  const hasFetched = localStorage.getItem("hasFetched");
+  useEffect(() => {
+    const hasFetched = localStorage.getItem("hasFetched");
 
-  if (hasFetched) {
-    console.log("Using saved data from localStorage, skipping fetch");
-    return;
-  }
+    if (hasFetched) {
+      console.log("Using saved data from localStorage, skipping fetch");
+      return;
+    }
 
-  console.log("📡 Fetching tasks from API...");
-  fetch("https://kanban-board-api.vercel.app/")
-    .then((res) => res.json())
-    .then((tasks) => {
-      const completed = tasks.filter((t) => t.status === "done");
-      const incomplete = tasks.filter((t) => t.status === "todo");
-      const inReview = tasks.filter((t) => t.status === "inReview");
-      const backlog = tasks.filter((t) => t.status === "backlog");
+    console.log("📡 Fetching tasks from API...");
+    fetch("https://kanban-board-api.vercel.app/")
+      .then((res) => res.json())
+      .then((tasks) => {
+        const completed = tasks.filter((t) => t.status === "done");
+        const incomplete = tasks.filter((t) => t.status === "todo");
+        const inReview = tasks.filter((t) => t.status === "inReview");
+        const backlog = tasks.filter((t) => t.status === "backlog");
 
-      setCompleted(completed);
-      setIncomplete(incomplete);
-      setInReview(inReview);
-      setBacklog(backlog);
+        setCompleted(completed);
+        setIncomplete(incomplete);
+        setInReview(inReview);
+        setBacklog(backlog);
 
-      localStorage.setItem("completed", JSON.stringify(completed));
-      localStorage.setItem("incomplete", JSON.stringify(incomplete));
-      localStorage.setItem("inReview", JSON.stringify(inReview));
-      localStorage.setItem("backlog", JSON.stringify(backlog));
-      localStorage.setItem("hasFetched", "true"); // ✅ Prevent refetch
+        localStorage.setItem("completed", JSON.stringify(completed));
+        localStorage.setItem("incomplete", JSON.stringify(incomplete));
+        localStorage.setItem("inReview", JSON.stringify(inReview));
+        localStorage.setItem("backlog", JSON.stringify(backlog));
+        localStorage.setItem("hasFetched", "true"); // ✅ Prevent refetch
+      })
+      .catch((err) => {
+        console.error("❌ Fetch error:", err);
+      });
+  }, []);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 5 },
     })
-    .catch((err) => {
-      console.error("❌ Fetch error:", err);
-    });
-}, []);
+  );
 
+  const getList = (id) => {
+    switch (id) {
+      case "1": return [...incomplete];
+      case "2": return [...completed];
+      case "3": return [...inReview];
+      case "4": return [...backlog];
+      default: return [];
+    }
+  };
+
+  const setList = (id, list) => {
+    switch (id) {
+      case "1": setIncomplete(list); break;
+      case "2": setCompleted(list); break;
+      case "3": setInReview(list); break;
+      case "4": setBacklog(list); break;
+    }
+  };
+
+  const findColumnId = (taskId) => {
+    if (incomplete.find((t) => `${t.id}` === taskId)) return "1";
+    if (completed.find((t) => `${t.id}` === taskId)) return "2";
+    if (inReview.find((t) => `${t.id}` === taskId)) return "3";
+    if (backlog.find((t) => `${t.id}` === taskId)) return "4";
+    return null;
+  };
 
   // Drag and drop logic
-  const handleDragEnd = (result) => {
-    const { destination, source, draggableId } = result;
-    if (!destination) return;
-    if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
-    )
-      return;
+  const handleDragEnd = ({ active, over }) => {
+    if (!over) return;
 
-    const getList = (id) => {
-      switch (id) {
-        case "1":
-          return [...incomplete];
-        case "2":
-          return [...completed];
-        case "3":
-          return [...inReview];
-        case "4":
-          return [...backlog];
-        default:
-          return [];
-      }
-    };
+    const sourceColId = findColumnId(active.id);
+    const destColId = ["1", "2", "3", "4"].includes(over.id)
+      ? over.id
+      : findColumnId(over.id);
 
-    const setList = (id, list) => {
-      switch (id) {
-        case "1":
-          setIncomplete(list);
-          break;
-        case "2":
-          setCompleted(list);
-          break;
-        case "3":
-          setInReview(list);
-          break;
-        case "4":
-          setBacklog(list);
-          break;
-      }
-    };
+    if (!sourceColId || !destColId) return;
+    if (sourceColId === destColId && active.id === over.id) return;
 
-    const sourceList = getList(source.droppableId);
-    const taskIndex = sourceList.findIndex((task) => task.id === draggableId);
+    const sourceList = getList(sourceColId);
+    const taskIndex = sourceList.findIndex((task) => `${task.id}` === active.id);
     const [movedTask] = sourceList.splice(taskIndex, 1);
 
     let updatedTask = { ...movedTask };
-    switch (destination.droppableId) {
-      case "1":
-        updatedTask.completed = false;
-        updatedTask.status = "todo";
-        break;
-      case "2":
-        updatedTask.completed = true;
-        updatedTask.status = "done";
-        break;
-      case "3":
-        updatedTask.completed = false;
-        updatedTask.status = "inReview";
-        break;
-      case "4":
-        updatedTask.completed = false;
-        updatedTask.status = "backlog";
-        break;
+    switch (destColId) {
+      case "1": updatedTask.completed = false; updatedTask.status = "todo"; break;
+      case "2": updatedTask.completed = true;  updatedTask.status = "done"; break;
+      case "3": updatedTask.completed = false; updatedTask.status = "inReview"; break;
+      case "4": updatedTask.completed = false; updatedTask.status = "backlog"; break;
     }
 
-    const destinationList = getList(destination.droppableId);
+    const destinationList = sourceColId === destColId ? sourceList : getList(destColId);
+    const overIndex = destinationList.findIndex((t) => `${t.id}` === over.id);
 
-    if (destination.droppableId === "4") {
+    if (destColId === "4") {
       destinationList.push(updatedTask);
     } else {
-      destinationList.splice(destination.index, 0, updatedTask);
+      destinationList.splice(overIndex >= 0 ? overIndex : destinationList.length, 0, updatedTask);
     }
 
-    setList(source.droppableId, sourceList);
-    setList(destination.droppableId, destinationList);
+    setList(sourceColId, sourceList);
+    setList(destColId, destinationList);
   };
 
   // Add new task
@@ -172,61 +169,32 @@ useEffect(() => {
 
   // Delete task
   const deleteTask = (id) => {
-  setIncomplete((prev) => {
-    const updated = prev.filter((t) => t.id !== id);
-    localStorage.setItem("incomplete", JSON.stringify(updated));
-    return updated;
-  });
-  setCompleted((prev) => {
-    const updated = prev.filter((t) => t.id !== id);
-    localStorage.setItem("completed", JSON.stringify(updated));
-    return updated;
-  });
-  setInReview((prev) => {
-    const updated = prev.filter((t) => t.id !== id);
-    localStorage.setItem("inReview", JSON.stringify(updated));
-    return updated;
-  });
-  setBacklog((prev) => {
-    const updated = prev.filter((t) => t.id !== id);
-    localStorage.setItem("backlog", JSON.stringify(updated));
-    return updated;
-  });
-};
-
-const editTask = (taskId, newTitle) => {
-  const updateTasks = (tasks) => {
-    const updated = tasks.map((task) =>
-      task.id === taskId ? { ...task, title: newTitle } : task
-    );
-    return updated;
+    setIncomplete((prev) => { const updated = prev.filter((t) => t.id !== id); localStorage.setItem("incomplete", JSON.stringify(updated)); return updated; });
+    setCompleted((prev) => { const updated = prev.filter((t) => t.id !== id); localStorage.setItem("completed", JSON.stringify(updated)); return updated; });
+    setInReview((prev) => { const updated = prev.filter((t) => t.id !== id); localStorage.setItem("inReview", JSON.stringify(updated)); return updated; });
+    setBacklog((prev) => { const updated = prev.filter((t) => t.id !== id); localStorage.setItem("backlog", JSON.stringify(updated)); return updated; });
   };
 
-  setIncomplete((prev) => {
-    const updated = updateTasks(prev);
-    localStorage.setItem("incomplete", JSON.stringify(updated));
-    return updated;
-  });
-  setCompleted((prev) => {
-    const updated = updateTasks(prev);
-    localStorage.setItem("completed", JSON.stringify(updated));
-    return updated;
-  });
-  setInReview((prev) => {
-    const updated = updateTasks(prev);
-    localStorage.setItem("inReview", JSON.stringify(updated));
-    return updated;
-  });
-  setBacklog((prev) => {
-    const updated = updateTasks(prev);
-    localStorage.setItem("backlog", JSON.stringify(updated));
-    return updated;
-  });
-};
+  const editTask = (taskId, newTitle) => {
+    const updateTasks = (tasks) => {
+      const updated = tasks.map((task) =>
+        task.id === taskId ? { ...task, title: newTitle } : task
+      );
+      return updated;
+    };
 
+    setIncomplete((prev) => { const updated = updateTasks(prev); localStorage.setItem("incomplete", JSON.stringify(updated)); return updated; });
+    setCompleted((prev) => { const updated = updateTasks(prev); localStorage.setItem("completed", JSON.stringify(updated)); return updated; });
+    setInReview((prev) => { const updated = updateTasks(prev); localStorage.setItem("inReview", JSON.stringify(updated)); return updated; });
+    setBacklog((prev) => { const updated = updateTasks(prev); localStorage.setItem("backlog", JSON.stringify(updated)); return updated; });
+  };
 
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
       <h2 style={{ textAlign: "center" }}>PROGRESS BOARD</h2>
 
       <div
@@ -287,6 +255,6 @@ const editTask = (taskId, newTitle) => {
         <Column title={"IN REVIEW"} tasks={inReview} id={"3"} color="#BBDEFB" onDelete={deleteTask} onEdit={editTask}/>
         <Column title={"BACKLOG"} tasks={backlog} id={"4"} color="#FFE0B2" onDelete={deleteTask} onEdit={editTask}/>
       </div>
-    </DragDropContext>
+    </DndContext>
   );
 }
